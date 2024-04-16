@@ -844,35 +844,26 @@ class CustomFileChooser(FileChooserListView):
         self.dirselect = True
 
 
-class DownloadFolderChooser(Popup):
-    def __init__(self, callback, **kwargs):
-        super().__init__(**kwargs)
-        self.title = "Select path to download"
-        self.file_chooser = CustomFileChooser(dirselect=True)
+class DownloadFolderChooser:
+    def __init__(self, callback):
         self.callback = callback
-        self.content_layout = BoxLayout(orientation='vertical')
+        self.file_path = ""
 
-        self.content_layout.add_widget(self.file_chooser)
-        self.size_hint = (0.8, 0.8)
+    def select_folder(self):
+        root = Tk()
+        root.withdraw()
+        folder_path = filedialog.askdirectory(title="Select path to download")
+        root.destroy()
 
-        button_height = 0.1
+        if folder_path:
+            self.file_path = folder_path
+            self.callback(self.file_path)
 
-        self.buttons = [
-            Button(text="Select", on_release=self.select_folder, size_hint_y=button_height)
-        ]
-
-        for button in self.buttons:
-            self.content_layout.add_widget(button)
-
-        self.content = self.content_layout
-
-    def dismiss_popup(self, instance):
-        self.dismiss()
-
-    def select_folder(self, instance):
-        selected_path = self.file_chooser.path
-        self.callback(selected_path)
-        self.dismiss()
+    def open(self):
+        self.select_folder()
+    
+    def callback(self, selected_path):
+        print(f"Selected folder: {selected_path}")
 
 
 class ProgressBar(MDSlider):
