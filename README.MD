@@ -6,6 +6,7 @@ A program for download your videos
 * Kivy
 * KivyMD
 * screeninfo
+* plyer
 
 ## How to run
 
