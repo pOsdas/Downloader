@@ -6,16 +6,14 @@ import shutil
 import webbrowser
 from tkinter import Tk, filedialog
 from kivy.lang import Builder
-from kivy.uix.button import Button
 from kivy.core.clipboard import Clipboard
-from kivymd.toast import toast
-from kivy.uix.popup import Popup
 from kivymd.app import MDApp
 from kivy.uix.filechooser import FileChooserListView
 import yt_dlp as youtube_dl
 import threading
 from kivymd.uix.boxlayout import BoxLayout
 import datetime
+from plyer import notification
 from screeninfo import get_monitors
 from kivy.core.window import Window
 from kivymd.uix.slider import MDSlider
@@ -132,6 +130,14 @@ MDScreenManager:
                         font_size: "14sp"
                         font_name: "assets/fonts/Montserrat-Medium.ttf"
                         pos_hint: {"center_x": 0.23, "top": 1.34}
+                    
+                    Label:
+                        text: 'What are we going to do today?'
+                        text_color: "white"
+                        font_size: "20sp"
+                        font_name: "assets/fonts/Montserrat-Medium.ttf"
+                        pos_hint: {"center_x": 0.5, "top": 0.6}
+                    
 
                     MDIconButton:
                         id: mover
@@ -344,10 +350,9 @@ MDScreenManager:
                         pos_hint: {'center_x': 0.57, 'center_y': 0.55}
 
 
-
                     # Language                    
                     MDLabel:
-                        text: 'English'
+                        text: app.startup_language()
                         font_style: 'Caption'
                         color: "white"
                         pos_hint: {'center_x': 1.15, 'center_y': 0.45}
@@ -441,17 +446,21 @@ MDScreenManager:
             font_name: "assets/fonts/Montserrat-Medium.ttf"
 
         MDSegmentedButton:
+            id: segment1
             pos_hint: {'center_x': 0.5, 'center_y': 0.69}
             size_hint: (0.8, None)
 
-
             MDSegmentedButtonItem:
                 text: 'Allow'
-                name: 'allow'    
+                active: app.check_push_notifications('allow')
+                on_press:
+                    app.change_push_notifications('True')
+                     
             MDSegmentedButtonItem:
                 text: 'Deny'
-                name: 'deny'
-                active: True
+                active: app.check_push_notifications('deny')
+                on_press:
+                    app.change_push_notifications('False')
 
         MDLabel:
             text: 'Notifications by email:'
@@ -468,16 +477,21 @@ MDScreenManager:
             font_name: "assets/fonts/Montserrat-Medium.ttf"
 
         MDSegmentedButton:
+            id: segment2
             pos_hint: {'center_x': 0.5, 'center_y': 0.45}
             size_hint: (0.8, None)
-            default_tab: 'deny1'
+            
             MDSegmentedButtonItem:
                 text: 'Allow'
-                name: 'allow1'      
+                active: app.check_email_notifications('allow')
+                on_press:
+                    app.change_email_notifications('True')
+                 
             MDSegmentedButtonItem:
                 text: 'Deny'   
-                name: 'deny1'
-                active: True 
+                active: app.check_email_notifications('deny')
+                on_press:
+                    app.change_email_notifications('False')
 
 
         MDIconButton:
@@ -517,7 +531,7 @@ MDScreenManager:
         MDCheckbox:
             group: 'language'
             id: checkbox_english    
-            active: True       
+            active: app.active_language('English')
             checkbox_icon_size: dp(36)
             pos_hint: {'center_x': 0.57, 'center_y': 0.8}
             size_hint: None, None
@@ -541,6 +555,7 @@ MDScreenManager:
         MDCheckbox:
             group: 'language'
             id: checkbox_russian
+            active: app.active_language('Russian')
             checkbox_icon_size: dp(36)
             size_hint: None, None
             pos_hint: {'center_x': 0.57, 'center_y': 0.7}
@@ -564,6 +579,7 @@ MDScreenManager:
         MDCheckbox:
             id: checkbox_german
             group: 'language'
+            active: app.active_language('German')
             size_hint: None, None
             checkbox_icon_size: dp(36)
             pos_hint: {'center_x': 0.57, 'center_y': 0.6}
@@ -629,7 +645,7 @@ MDScreenManager:
             font_name: "assets/fonts/Montserrat-Medium.ttf"
 
         Image:
-            source: 'assets/icons/txt.png'
+            source: 'assets/icons/pdf.png'
             pos_hint: {'center_x': 0.15, 'center_y': 0.67}
 
         MDFlatButton:
@@ -688,7 +704,7 @@ MDScreenManager:
             on_release: app.copy_to_clipboard(self.text)
 
         MDLabel:
-            text: "press on email!"
+            text: "click on email to copy!"
             pos_hint: {'center_x': 0.67, 'center_y': 0.29}
             font_style: 'Body1'
             color: "white"
@@ -836,6 +852,7 @@ MDScreenManager:
             on_release: app.go_back()
 """
 
+
 # Download path selection
 class CustomFileChooser(FileChooserListView):
     def __init__(self, **kwargs):
@@ -861,7 +878,7 @@ class DownloadFolderChooser:
 
     def open(self):
         self.select_folder()
-    
+
     def callback(self, selected_path):
         print(f"Selected folder: {selected_path}")
 
@@ -933,7 +950,6 @@ class YoutubeDownloaderApp(MDApp):
     @staticmethod
     def copy_to_clipboard(text):
         Clipboard.copy(text)
-        toast("Text copied to clipboard!")
 
     @staticmethod
     def show_username():
@@ -1026,6 +1042,7 @@ class YoutubeDownloaderApp(MDApp):
                 ydl.download([url])
 
             self.root.ids.enter_http.helper_text = "Video downloaded successfully"
+            self.send_windows_notification('Success')
             print("Video downloaded successfully")
 
         except Exception as e:
@@ -1055,12 +1072,15 @@ class YoutubeDownloaderApp(MDApp):
                 download_thread = threading.Thread(target=self.download_video, args=(url,))
                 download_thread.start()
             else:
+                self.root.ids.enter_http.helper_text = "Invalid URL provided."
+                self.send_windows_notification("Invalid URL provided.")
                 print("Invalid URL provided.")
         except Exception as e:
             self.root.ids.enter_http.helper_text = str(e)
+            self.send_windows_notification("An error occurred while downloading the video")
             print(f"An error occurred: {str(e)}")
 
-    # account screen
+    # account screen switches
     def edit_profile(self):
         self.root.current = "profileScreen"
 
@@ -1075,6 +1095,7 @@ class YoutubeDownloaderApp(MDApp):
 
     def go_back(self):
         self.root.current = "screen B"
+    # end of switches
 
     @staticmethod
     def download_policy():
@@ -1082,15 +1103,70 @@ class YoutubeDownloaderApp(MDApp):
         webbrowser.open(pdf_path)
 
     def set_language(self, language):
+        language_file = "set_language.json"
+        with open(language_file, "w") as f:
+            data = {"language": language}
+            json.dump(data, f)
         print(f'Language selected: {language}')
 
-    def change_language(self):
-        # in future
-        pass
+    @staticmethod
+    def change_push_notifications(notif):
+        notif_file = "set_push_notification.json"
+        with open(notif_file, "w") as f:
+            data = {"notif_push": notif}
+            json.dump(data, f)
 
-    def change_notifications(self):
-        # in future
-        pass
+    def check_push_notifications(self, button_name):
+        print(f'check_push_notifications: {button_name}')
+        if os.path.exists('set_push_notification.json'):
+            with open('set_push_notification.json', "r") as json_file:
+                data = json.load(json_file)
+                value = data.get("notif_push")
+            if value == "True":
+                if button_name == 'allow':
+                    return True
+                elif button_name == 'deny':
+                    return False
+            elif value == "False":
+                if button_name == 'allow':
+                    return False
+                elif button_name == 'deny':
+                    return True
+        else:
+            print("push notifications haven't been clicked yet")
+            if button_name == 'allow':
+                return False
+            elif button_name == 'deny':
+                return True
+
+    @staticmethod
+    def change_email_notifications(notif):
+        notif_file = "set_email_notification.json"
+        with open(notif_file, "w") as f:
+            data = {"notif_email": notif}
+            json.dump(data, f)
+
+    def check_email_notifications(self, button_name):
+        if os.path.exists('set_email_notification.json'):
+            with open('set_email_notification.json', "r") as json_file:
+                data = json.load(json_file)
+                value = data.get("notif_email")
+            if value == "True":
+                if button_name == 'allow':
+                    return True
+                elif button_name == 'deny':
+                    return False
+            elif value == "False":
+                if button_name == 'allow':
+                    return False
+                elif button_name == 'deny':
+                    return True
+        else:
+            print("notifications by email haven't been clicked yet")
+            if button_name == 'allow':
+                return False
+            elif button_name == 'deny':
+                return True
 
     @staticmethod
     def upload_avatar():
@@ -1114,3 +1190,43 @@ class YoutubeDownloaderApp(MDApp):
             return "assets/images/custom_avatar.png"
         else:
             return "assets/images/user.png"
+
+    @staticmethod
+    def active_language(to_check):
+        if os.path.exists('set_language.json'):
+            with open('set_language.json', "r") as json_file:
+                data = json.load(json_file)
+                language_value = data.get("language")
+                if to_check == language_value:
+                    return True
+                else:
+                    return False
+        else:
+            if to_check == 'English':
+                return True
+            else:
+                return False
+
+    @staticmethod
+    def startup_language():
+        if os.path.exists('set_language.json'):
+            with open('set_language.json', "r") as json_file:
+                data = json.load(json_file)
+                language_value = data.get("language")
+                return language_value
+        else:
+            return 'English'
+
+    def send_windows_notification(self, message, timeout=8):
+        if os.path.exists('set_push_notification.json'):
+            with open('set_push_notification.json', "r") as json_file:
+                data = json.load(json_file)
+                value = data.get("notif_push")
+                print('Yep')
+                if value == "True":
+                    notification.notify(
+                        title="Downloader",
+                        message=message,
+                        app_icon="assets/icons/app-ico.ico",
+                        timeout=timeout,
+                    )
