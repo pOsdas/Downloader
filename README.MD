@@ -7,6 +7,8 @@ A program for download your videos
 * KivyMD
 * screeninfo
 * plyer
+* Babel
+* pillow
 
 ## How to run
 

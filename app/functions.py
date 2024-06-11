@@ -3,7 +3,7 @@ import datetime
 import json
 import os
 import random
-import calendar
+from babel.dates import format_date
 
 
 # First-in text
@@ -41,25 +41,37 @@ def get_back_image():
 
 # Text during entrances > 1
 def get_greet():
+    current_time = datetime.datetime.now().time()
+    if datetime.time(6, 0) <= current_time < datetime.time(18, 0):
+        return 'greeting_m'
+    else:
+        return 'greeting_n'
+
+
+def add_username_to_end():
+    username = ''
     if os.path.isfile('username.json'):
         with open('username.json', 'r') as file:
             data = json.load(file)
         if 'username' in data:
             username = data['username']
-            current_time = datetime.datetime.now().time()
-            if datetime.time(6, 0) <= current_time < datetime.time(18, 0):
-                return f'Good morning, {username}'
-            else:
-                return f'Good night, {username}'
-
-    else:
-        return 'Good night'
+    return username
 
 
-def get_data():
+def get_localized_date(language):
     now = datetime.datetime.now()
-    day = now.day
-    year = now.year
-    month_number = now.month
-    month_name = calendar.month_name[month_number].lower()
-    return f'{day} {month_name}, {year}'
+    if language == 'English':
+        localized_date = format_date(now, format='d MMMM, yyyy', locale='en')
+        return localized_date
+    elif language == 'Russian':
+        localized_date = format_date(now, format='d MMMM, yyyy', locale='ru')
+        return localized_date
+    elif language == 'German':
+        localized_date = format_date(now, format='d MMMM, yyyy', locale='de')
+        return localized_date
+    elif language == 'Espanol':
+        localized_date = format_date(now, format='d MMMM, yyyy', locale='es')
+        return localized_date
+    else:
+        return None
+

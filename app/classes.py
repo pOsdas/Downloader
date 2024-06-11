@@ -3,22 +3,30 @@ import os
 import re
 import json
 import shutil
+import random
+import time
 import webbrowser
 from tkinter import Tk, filedialog
 from kivy.lang import Builder
 from kivy.core.clipboard import Clipboard
+from kivy.properties import StringProperty
 from kivymd.app import MDApp
 from kivy.uix.filechooser import FileChooserListView
 import yt_dlp as youtube_dl
 import threading
 from kivymd.uix.boxlayout import BoxLayout
 import datetime
+from kivy.graphics import Ellipse, Color
+from kivymd.uix.textfield import MDTextField
 from plyer import notification
 from screeninfo import get_monitors
 from kivy.core.window import Window
 from kivymd.uix.slider import MDSlider
+from kivy.clock import Clock
+from PIL import Image, ImageDraw
 
-from functions import get_background_image, get_back_image, get_data, get_greeting, get_greet
+from functions import (get_background_image, get_back_image, get_greeting, get_greet, add_username_to_end,
+                       get_localized_date)
 
 monitors = get_monitors()
 
@@ -103,8 +111,9 @@ MDScreenManager:
                 font_size: "14sp"
 
                 MDBottomNavigationItem:
+                    id: bottom_navigation_1
                     name: 'home'
-                    text: 'home'
+                    text: app.get_translation("bottom_navigation_1")
                     icon: "assets/icons/home.png"
                     icon_color_active: "orange"
 
@@ -116,7 +125,7 @@ MDScreenManager:
 
                     Label:
                         id: greeting_label
-                        text: app.text_second
+                        text: (f"{app.get_translation(app.text_second)}, {app.username}")
                         text_color: "white"
                         font_size: "25sp"
                         font_name: "assets/fonts/Montserrat-Medium.ttf"
@@ -132,7 +141,8 @@ MDScreenManager:
                         pos_hint: {"center_x": 0.23, "top": 1.34}
                     
                     Label:
-                        text: 'What are we going to do today?'
+                        id: question
+                        text: app.get_translation("question")
                         text_color: "white"
                         font_size: "20sp"
                         font_name: "assets/fonts/Montserrat-Medium.ttf"
@@ -148,8 +158,9 @@ MDScreenManager:
 
 
                 MDBottomNavigationItem:
+                    id: bottom_navigation_2
                     name: 'download'
-                    text: 'download'
+                    text: app.get_translation("bottom_navigation_2")
                     icon: "assets/icons/downloads.png"
                     icon_color_active: "orange"
 
@@ -160,15 +171,15 @@ MDScreenManager:
                         keep_ratio: False
 
                     Label:
-                        id: greeting_label
-                        text: app.text_second
+                        id: greeting_label_second
+                        text: (f"{app.get_translation(app.text_second)}, {app.username}")
                         text_color: "white"
                         font_size: "25sp"
                         font_name: "assets/fonts/Montserrat-Medium.ttf"
                         pos_hint: {"center_x": 0.34, "top": 1.38}
 
                     Label:
-                        id: date
+                        id: date_second
                         text: app.data
                         text_color: "white"
                         font_size: "14sp"
@@ -190,7 +201,8 @@ MDScreenManager:
                         md_bg_color: "#2d3250"
 
                     MDLabel
-                        text: 'Download:'
+                        id: downloader
+                        text: app.get_translation("downloader")
                         theme_text_color: "Custom"
                         text_color: 1, 1, 1, 1
                         font_size: "20sp"
@@ -199,7 +211,7 @@ MDScreenManager:
 
                     MDTextField:
                         id: enter_http
-                        hint_text: 'Enter your link'
+                        hint_text: app.get_translation("enter_http")
                         # hint_text_color: 255, 255, 255, 1
                         size_hint: (None, None)
                         width: 250
@@ -266,8 +278,9 @@ MDScreenManager:
                         color: app.theme_cls.accent_color
 
                 MDBottomNavigationItem:
+                    id: bottom_navigation_3
                     name: 'account'
-                    text: 'account'
+                    text: app.get_translation("bottom_navigation_3")
                     icon: "assets/icons/user.png"
                     icon_color_active: "orange"
 
@@ -278,14 +291,16 @@ MDScreenManager:
                         keep_ratio: False
 
                     MDLabel:
-                        text: 'Settings'
+                        id: head_1
+                        text: app.get_translation("head_1")
                         font_size: '30sp'
                         color: app.theme_cls.accent_color
                         font_name: "assets/fonts/Montserrat-Medium.ttf"
                         pos_hint: {'center_x': 0.57, 'center_y': 0.88}
 
                     MDLabel:
-                        text: 'Account'
+                        id: head_1_1
+                        text: app.get_translation("head_1_1")
                         font_size: '18sp'
                         color: app.theme_cls.accent_color
                         font_name: "assets/fonts/Montserrat-Medium.ttf"
@@ -302,15 +317,16 @@ MDScreenManager:
 
                         MDBoxLayout:
                             orientation: 'vertical'
-                            canvas:
-                                Color:
-                                    rgb: 1, 1, 1
-                                Ellipse:
-                                    pos: 30, 567
-                                    size: 140 , 140 
-                                    source: app.set_avatar()
-                                    angle_start: 0
-                                    angle_end: 360                       
+                            id: avatar_container_second
+                            pos_hint: {'center_x': 0.3, 'center_y': 0.01}
+                            Image:
+                                id: avatar_image_second
+                                size_hint: None, None
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.01}
+                                size: 140, 140
+                                source: app.set_avatar()
+                                allow_stretch: True
+                                keep_ratio: True                  
 
                         # personal info
                         MDBoxLayout:
@@ -328,7 +344,8 @@ MDScreenManager:
                                 font_name: "assets/fonts/Montserrat-Medium.ttf"
 
                             MDLabel:
-                                text: 'Personal Info'
+                                id: account_body
+                                text: app.get_translation("account_body")
                                 font_style: 'Caption'
                                 color: "white"
                                 font_size: "15sp"
@@ -343,7 +360,8 @@ MDScreenManager:
                                 app.edit_profile()
 
                     MDLabel:
-                        text: 'Settings'
+                        id: head_q
+                        text: app.get_translation("head_q")
                         font_size: '18sp'
                         color: app.theme_cls.accent_color
                         font_name: "assets/fonts/Montserrat-Medium.ttf"
@@ -352,6 +370,7 @@ MDScreenManager:
 
                     # Language                    
                     MDLabel:
+                        id: preview_text
                         text: app.startup_language()
                         font_style: 'Caption'
                         color: "white"
@@ -365,7 +384,8 @@ MDScreenManager:
                         padding: ['30dp', 0, '20dp', 0]
 
                         MDLabel:
-                            text: 'Language'  
+                            id: change_1
+                            text: app.get_translation("change_1")  
                             font_style: 'Subtitle1'
                             color: "white"
                             font_size: "20sp"
@@ -390,7 +410,8 @@ MDScreenManager:
                             app.edit_notifications()
 
                     MDLabel:
-                        text: 'Notifications' 
+                        id: change_2
+                        text: app.get_translation("change_2") 
                         pos_hint: {'center_x': 0.27,'center_y': 0.355}
                         font_style: 'Subtitle1'
                         color: "white"
@@ -400,7 +421,8 @@ MDScreenManager:
 
                     # Help                    
                     MDLabel:
-                        text: 'Help'  
+                        id: change_3
+                        text: app.get_translation("change_3")  
                         font_style: 'Subtitle1'
                         pos_hint: {'center_x': 0.58,'center_y': 0.26}
                         color: "white"
@@ -431,7 +453,8 @@ MDScreenManager:
             size_hint: (1, 1)
 
         MDLabel:
-            text: 'Choose an Option:'
+            id: change_notif_head
+            text: app.get_translation("change_notif_head")
             font_style: 'Subtitle1'
             pos_hint: {'center_x': 0.57, 'center_y': 0.95}
             color: "white"
@@ -439,7 +462,8 @@ MDScreenManager:
             font_name: "assets/fonts/Montserrat-Medium.ttf"
 
         MDLabel:
-            text: 'Push notifications:'
+            id: push_notif
+            text: app.get_translation("push_notif")
             pos_hint: {'center_x': 0.57, 'center_y': 0.79}
             color: app.theme_cls.accent_color
             font_size: "20sp"
@@ -451,26 +475,30 @@ MDScreenManager:
             size_hint: (0.8, None)
 
             MDSegmentedButtonItem:
-                text: 'Allow'
+                id: segment1_1
+                text: app.get_translation("segment1_1")
                 active: app.check_push_notifications('allow')
                 on_press:
                     app.change_push_notifications('True')
                      
             MDSegmentedButtonItem:
-                text: 'Deny'
+                id: segment1_2
+                text: app.get_translation("segment1_2")
                 active: app.check_push_notifications('deny')
                 on_press:
                     app.change_push_notifications('False')
 
         MDLabel:
-            text: 'Notifications by email:'
+            id: email_n
+            text: app.get_translation("email_n")
             pos_hint: {'center_x': 0.57, 'center_y': 0.59}
             color: app.theme_cls.accent_color
             font_size: "20sp"
             font_name: "assets/fonts/Montserrat-Medium.ttf"
 
         MDLabel:
-            text: f'Your email: {app.get_email()}'
+            id: your_email
+            text: f'{app.get_translation("your_email")} {app.get_email()}'
             pos_hint: {'center_x': 0.6, 'center_y': 0.55}
             color: "white"
             font_size: "16sp"
@@ -482,13 +510,15 @@ MDScreenManager:
             size_hint: (0.8, None)
             
             MDSegmentedButtonItem:
-                text: 'Allow'
+                id: segment2_1
+                text: app.get_translation("segment2_1")
                 active: app.check_email_notifications('allow')
                 on_press:
                     app.change_email_notifications('True')
                  
             MDSegmentedButtonItem:
-                text: 'Deny'   
+                id: segment2_2
+                text: app.get_translation("segment2_2")   
                 active: app.check_email_notifications('deny')
                 on_press:
                     app.change_email_notifications('False')
@@ -503,7 +533,8 @@ MDScreenManager:
             size_hint: (None, None)
 
         MDFlatButton:
-            text: 'Go back'
+            id: go_back_1
+            text: app.get_translation("go_back_1")
             theme_text_color: "Custom"
             text_color: 1, 1, 1, 1
             font_style: 'Subtitle1'
@@ -521,7 +552,8 @@ MDScreenManager:
             size_hint: (1, 1)
 
         MDLabel:
-            text: 'Choose language:'
+            id: change_language_head
+            text: app.get_translation("change_language_head")
             font_style: 'Subtitle1'
             pos_hint: {'center_x': 0.57, 'center_y': 0.95}
             color: "white"
@@ -539,6 +571,7 @@ MDScreenManager:
             on_active: app.set_language('English')
 
         MDLabel:
+            id: english_la
             text: 'English'
             pos_hint: {'center_x': 0.35, 'center_y': 0.8}
             halign: 'center'
@@ -563,6 +596,7 @@ MDScreenManager:
             on_active: app.set_language('Russian')
 
         MDLabel:
+            id: label_russian
             text: 'Russian'
             halign: 'center'
             color: "white"
@@ -587,6 +621,7 @@ MDScreenManager:
             on_active: app.set_language('German')
 
         MDLabel:
+            id: label_german
             text: 'German'
             color: "white"
             font_size: "20sp"
@@ -599,6 +634,31 @@ MDScreenManager:
             source: 'assets/icons/germany.png'
             size_hint: (70, 70)
             pos_hint: {'center_x': 0.17, 'center_y': 0.6}
+        
+        MDCheckbox:
+            id: checkbox_es
+            group: 'language'
+            active: app.active_language('Espanol')
+            size_hint: None, None
+            checkbox_icon_size: dp(36)
+            pos_hint: {'center_x': 0.57, 'center_y': 0.5}
+            size: dp(48), dp(48)
+            on_active: app.set_language('Espanol')
+
+        MDLabel:
+            id: label_es
+            text: 'Español'
+            color: "white"
+            font_size: "20sp"
+            font_name: "assets/fonts/Montserrat-Medium.ttf"
+            pos_hint: {'center_x': 0.35, 'center_y': 0.5}
+            halign: 'center'
+            font_style: 'Body1'
+
+        Image:
+            source: 'assets/icons/es.png'
+            size_hint: (70, 70)
+            pos_hint: {'center_x': 0.17, 'center_y': 0.5}
 
         MDIconButton:
             icon: "arrow-left"
@@ -609,7 +669,8 @@ MDScreenManager:
             size_hint: (None, None)
 
         MDFlatButton:
-            text: 'Go back'
+            id: go_back_2
+            text: app.get_translation("go_back_2")
             theme_text_color: "Custom"
             text_color: 1, 1, 1, 1
             font_style: 'Subtitle1'
@@ -627,7 +688,8 @@ MDScreenManager:
             size_hint: (1, 1)
 
         MDLabel:
-            text: "1. Where can I download the video from?"
+            id: help_head_1
+            text: app.get_translation("help_head_1")
             pos_hint: {'center_x': 0.35, 'center_y': 0.93}
             font_style: 'Body1'
             size_hint: (0.6, None)
@@ -636,7 +698,8 @@ MDScreenManager:
             font_name: "assets/fonts/Montserrat-Medium.ttf"
 
         MDLabel:
-            text: "Youtube, Pinterest, TikTok, Twitch, Twitter, Crunchyroll, Steam etc."
+            id: etc
+            text: f"Youtube, Pinterest, TikTok, Twitch, Twitter, Crunchyroll, Steam {app.get_translation('etc')}"
             pos_hint: {'center_x': 0.55, 'center_y': 0.85}
             font_style: 'Body1'
             size_hint: (0.9, None)
@@ -649,7 +712,8 @@ MDScreenManager:
             pos_hint: {'center_x': 0.15, 'center_y': 0.67}
 
         MDFlatButton:
-            text: "Download Privacy Policy"
+            id: pdf
+            text: app.get_translation("pdf")
             theme_text_color: "Custom"
             text_color: 1, 1, 1, 1
             font_size: "16sp"
@@ -667,7 +731,8 @@ MDScreenManager:
                     size: 270, 1 
 
         MDLabel:
-            text: "2. Second point"
+            id: help_head_3
+            text: app.get_translation("help_head_3")
             pos_hint: {'center_x': 0.55, 'center_y': 0.6}
             font_style: 'Body1'
             color: app.theme_cls.accent_color
@@ -685,7 +750,8 @@ MDScreenManager:
 
 
         MDLabel:
-            text: "If you have any questions:"
+            id: help_head_4
+            text: app.get_translation("help_head_4")
             pos_hint: {'center_x': 0.6, 'center_y': 0.35}
             font_style: 'Body1'           
             color: app.theme_cls.accent_color
@@ -704,7 +770,8 @@ MDScreenManager:
             on_release: app.copy_to_clipboard(self.text)
 
         MDLabel:
-            text: "click on email to copy!"
+            id: click
+            text: app.get_translation("click")
             pos_hint: {'center_x': 0.67, 'center_y': 0.29}
             font_style: 'Body1'
             color: "white"
@@ -721,7 +788,8 @@ MDScreenManager:
             size_hint: (None, None)
 
         MDFlatButton:
-            text: 'Go back'
+            id: go_back_3
+            text: app.get_translation("go_back_3")
             theme_text_color: "Custom"
             text_color: 1, 1, 1, 1
             font_style: 'Subtitle1'
@@ -739,23 +807,24 @@ MDScreenManager:
             size_hint: (1, 1)
 
         MDLabel:
-            text: 'Account info:'
+            id: change_acc_head
+            text: app.get_translation("change_acc_head")
             font_size: '26sp'
             color: app.theme_cls.accent_color
             font_name: "assets/fonts/Montserrat-Medium.ttf"
             pos_hint: {'center_x': 0.55, 'center_y': 0.95}
-
-        MDBoxLayout:
+        
+        BoxLayout:
             orientation: 'vertical'
-            canvas:
-                Color:
-                    rgb: 1, 1, 1
-                Ellipse:
-                    pos: 40, 750
-                    size: 140 , 140 
-                    source: app.set_avatar()
-                    angle_start: 0
-                    angle_end: 360
+            id: avatar_container
+            pos: 40, 750
+            Image:
+                id: avatar_image
+                size_hint: None, None
+                size: 140, 140
+                source: app.set_avatar()
+                allow_stretch: True
+                keep_ratio: True
 
         MDIconButton:
             icon: "camera"
@@ -783,7 +852,8 @@ MDScreenManager:
             pos_hint: {'center_x': 0.71, 'center_y': 0.79}
 
         MDLabel:
-            text: 'If you want to change:'
+            id: change_info
+            text: app.get_translation("change_info")
             font_size: '16sp'
             size_hint: (0.5, None)
             color: "white"
@@ -792,7 +862,7 @@ MDScreenManager:
 
         MDTextField:
             id: enter_name_again
-            hint_text: 'Enter your name'
+            hint_text: app.get_translation("enter_name_again")
             # hint_text_color: 255, 255, 255, 1
             size_hint: (None, None)
             width: 300
@@ -805,7 +875,7 @@ MDScreenManager:
 
         MDRaisedButton:
             id: submit_button_again1
-            text: "submit"
+            text: app.get_translation("submit_button_again1")
             font_name: "assets/fonts/Montserrat-Medium.ttf"
             # md_bg_color: "white"
             pos_hint: {'center_x': 0.5, 'y': 0.4}
@@ -814,7 +884,7 @@ MDScreenManager:
 
         MDTextField:
             id: enter_email_again
-            hint_text: 'Enter your email address'
+            hint_text: app.get_translation("enter_email_again")
             # hint_text_color: 255, 255, 255, 1
             size_hint: (None, None)
             width: 300
@@ -826,7 +896,7 @@ MDScreenManager:
 
         MDRaisedButton:
             id: submit_button_again2
-            text: "submit"
+            text: app.get_translation("submit_button_again2")
             font_name: "assets/fonts/Montserrat-Medium.ttf"
             # md_bg_color: "white"
             pos_hint: {'center_x': 0.5, 'y': 0.2}
@@ -842,7 +912,8 @@ MDScreenManager:
             size_hint: (None, None)
 
         MDFlatButton:
-            text: 'Go back'
+            id: go_back_4
+            text: app.get_translation("go_back_4")
             theme_text_color: "Custom"
             text_color: 1, 1, 1, 1
             font_style: 'Subtitle1'
@@ -901,16 +972,20 @@ class YoutubeDownloader(BoxLayout):
 
 # Core
 class YoutubeDownloaderApp(MDApp):
+    my_text = StringProperty("Initial text")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.background_image_source = get_background_image()
-        self.email = self.username = None
+        self.email = None
         self.greeting_text = get_greeting()
         self.text_second = get_greet()
+        self.username = add_username_to_end()
         self.back_second = get_back_image()
-        self.data = get_data()
+        self.data = get_localized_date(self.startup_language())
         self.window_position = "left"
         self.selected_folder_path = ""
+        self.language_text = self.startup_language()
 
     def build(self):
         # Theme customization
@@ -1056,7 +1131,7 @@ class YoutubeDownloaderApp(MDApp):
             if total_bytes and bytes_received:
                 progress = (bytes_received / total_bytes) * 100
                 if progress == 100.0:
-                    self.root.ids.progress_label.text = 'Done'
+                    self.root.ids.progress_label.text = self.get_translation("download_done")
                     self.root.ids.progress_bar.value = progress
                 else:
                     print(f"Progress: {progress:.2f}%")
@@ -1095,6 +1170,7 @@ class YoutubeDownloaderApp(MDApp):
 
     def go_back(self):
         self.root.current = "screen B"
+
     # end of switches
 
     @staticmethod
@@ -1108,6 +1184,13 @@ class YoutubeDownloaderApp(MDApp):
             data = {"language": language}
             json.dump(data, f)
         print(f'Language selected: {language}')
+        self.update_language_text()
+        self.update_text_elements()
+
+    def update_language_text(self):
+        new_language = self.startup_language()
+        self.language_text = new_language
+        self.root.ids.preview_text.text = self.language_text
 
     @staticmethod
     def change_push_notifications(notif):
@@ -1168,8 +1251,7 @@ class YoutubeDownloaderApp(MDApp):
             elif button_name == 'deny':
                 return True
 
-    @staticmethod
-    def upload_avatar():
+    def upload_avatar(self):
         root = Tk()
         root.withdraw()
 
@@ -1179,17 +1261,53 @@ class YoutubeDownloaderApp(MDApp):
             destination_path = os.path.join(os.getcwd(), "assets", "images", "custom_avatar.png")
             shutil.copyfile(file_path, destination_path)
             print(f"Avatar saved to: {destination_path}")
+            self.update_avatar()
         else:
             print("No file selected.")
 
-    @staticmethod
-    def set_avatar():
+    def set_avatar(self):
         assets_folder = os.path.join(os.getcwd(), "assets")
         subfolder_path = os.path.join(assets_folder, "images", "custom_avatar.png")
         if os.path.exists(subfolder_path):
-            return "assets/images/custom_avatar.png"
+            self.make_image_round(subfolder_path)
+            return subfolder_path
         else:
-            return "assets/images/user.png"
+            return os.path.join(assets_folder, "images", "user.png")
+
+    @staticmethod
+    def make_image_round(image_path):
+        image = Image.open(image_path).convert("RGBA")
+
+        min_side = min(image.size)
+        size = (min_side, min_side)
+
+        mask = Image.new("L", size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0) + size, fill=255)
+
+        output_image = Image.new("RGBA", size)
+
+        left = (image.size[0] - min_side) // 2
+        top = (image.size[1] - min_side) // 2
+        right = left + min_side
+        bottom = top + min_side
+
+        cropped_image = image.crop((left, top, right, bottom))
+        output_image.paste(cropped_image, (0, 0), mask)
+        output_image.save("assets/images/custom_avatar.png")
+
+    def update_avatar(self):
+        # first
+        avatar_source = self.set_avatar()
+        avatar_image = self.root.ids.avatar_image
+        avatar_image.source = avatar_source
+        avatar_image.reload()
+
+        # second
+        avatar_source_second = self.set_avatar()
+        avatar_image_second = self.root.ids.avatar_image_second
+        avatar_image_second.source = avatar_source_second
+        avatar_image_second.reload()
 
     @staticmethod
     def active_language(to_check):
@@ -1230,3 +1348,48 @@ class YoutubeDownloaderApp(MDApp):
                         app_icon="assets/icons/app-ico.ico",
                         timeout=timeout,
                     )
+
+    def get_translation(self, key):
+        file_path = "languages.json"
+        with open(file_path, "r", encoding='utf-8') as file:
+            data = json.load(file)
+            language = self.startup_language()
+            return data.get(language, {}).get(key)
+
+    def update_text_elements(self):
+        source = "Youtube, Pinterest, TikTok, Twitch, Twitter, Crunchyroll, Steam "
+        ids = [
+            'bottom_navigation_1', 'question', 'bottom_navigation_2', 'greeting_label', 'downloader', 'enter_http',
+            'bottom_navigation_3', 'head_1', 'head_1_1', 'account_body', 'head_q', 'change_1',
+            'change_2', 'change_3', 'change_notif_head', 'push_notif', 'segment1_1', 'segment1_2', 'email_n',
+            'your_email', 'segment2_1', 'segment2_2', 'go_back_1', 'go_back_2', 'go_back_3', 'go_back_4',
+            'change_language_head', 'help_head_1', 'etc', 'pdf', 'help_head_3', 'help_head_4', 'click', 'go_back',
+            'change_acc_head', 'change_info', 'enter_name_again', 'submit_button_again1',
+            'enter_email_again', 'submit_button_again2'
+        ]
+
+        etc_translations = {"etc.", "и т.д.", "usw.", "etc."}
+
+        for element_id in ids:
+            element = self.root.ids.get(element_id)
+            if element:
+                translation = self.get_translation(element_id)
+                if isinstance(element, MDTextField):
+                    element.hint_text = translation if translation is not None else ""
+                else:
+                    if translation in etc_translations:
+                        element.text = source + translation if translation is not None else ""
+                    else:
+                        element.text = translation if translation is not None else ""
+
+        self.update_greeting_and_date()
+
+    def update_greeting_and_date(self):
+        greeting_key = get_greet()
+        greeting_text = self.get_translation(greeting_key)
+        date_text = get_localized_date(self.startup_language())
+
+        self.root.ids.greeting_label.text = f"{greeting_text}, {self.username}"
+        self.root.ids.greeting_label_second.text = f"{greeting_text}, {self.username}"
+        self.root.ids.date.text = date_text
+        self.root.ids.date_second.text = date_text
