@@ -1370,6 +1370,8 @@ class YoutubeDownloaderApp(MDApp):
 
         etc_translations = {"etc.", "и т.д.", "usw.", "etc."}
 
+        your_email_translations = {"Ваша электронная почта:", "Tu correo:", "Ihre E-Mail-Adresse:", "Your email:"}
+
         for element_id in ids:
             element = self.root.ids.get(element_id)
             if element:
@@ -1379,6 +1381,8 @@ class YoutubeDownloaderApp(MDApp):
                 else:
                     if translation in etc_translations:
                         element.text = source + translation if translation is not None else ""
+                    elif translation in your_email_translations:
+                        element.text = translation + " " + self.get_email() if translation is not None else ""
                     else:
                         element.text = translation if translation is not None else ""
 
