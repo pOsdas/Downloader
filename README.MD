@@ -9,6 +9,7 @@ A program for download your videos
 * plyer
 * Babel
 * pillow
+* ctypes
 
 ## How to run
 

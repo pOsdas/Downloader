@@ -1,4 +1,5 @@
 # classes.py
+import ctypes
 import os
 import re
 import json
@@ -925,11 +926,12 @@ MDScreenManager:
 
 
 # Download path selection
-class CustomFileChooser(FileChooserListView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.rootpath = 'D:/'
-        self.dirselect = True
+# class CustomFileChooser(FileChooserListView):
+#     def __init__(self, **kwargs):
+#
+#         super().__init__(**kwargs)
+#         self.rootpath = 'D:/'
+#         self.dirselect = True
 
 
 class DownloadFolderChooser:
@@ -954,8 +956,8 @@ class DownloadFolderChooser:
         print(f"Selected folder: {selected_path}")
 
 
-class ProgressBar(MDSlider):
-    pass
+# class ProgressBar(MDSlider):
+#     pass
 
 
 # First-in main background
@@ -1006,6 +1008,8 @@ class YoutubeDownloaderApp(MDApp):
             self.root.current = "screen B"
             print('Screen B')
 
+        Clock.schedule_once(lambda dt: self.set_fixed_window_size(), 0.1)
+
     def save_username(self):
         self.username = self.root.ids.enter_name.text
         self.write_username()
@@ -1021,6 +1025,15 @@ class YoutubeDownloaderApp(MDApp):
         with open(username_file, "w") as f:
             data = {"username": self.username}
             json.dump(data, f)
+
+    @staticmethod
+    def set_fixed_window_size():
+        user32 = ctypes.windll.user32
+        hwnd = user32.GetForegroundWindow()
+        style = user32.GetWindowLongPtrW(hwnd, -16)
+        style &= ~0x00040000  # WS_SIZEBOX
+        style &= ~0x00010000  # WS_MAXIMIZEBOX
+        user32.SetWindowLongPtrW(hwnd, -16, style)
 
     @staticmethod
     def copy_to_clipboard(text):
@@ -1066,11 +1079,12 @@ class YoutubeDownloaderApp(MDApp):
 
     # 1455
     def move_to(self):
+        right = monitor.width - Window.width
         if self.window_position == "right":
             Window.left = 0
             self.window_position = "left"
         elif self.window_position == "left":
-            Window.left = monitor.width - Window.width
+            Window.left = right
             self.window_position = "right"
 
     @staticmethod
