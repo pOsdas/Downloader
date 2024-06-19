@@ -10,6 +10,7 @@ A program for download your videos
 * Babel
 * pillow
 * ctypes
+* sqlite3
 
 ## How to run
 
