@@ -10,7 +10,7 @@ import webbrowser
 from tkinter import Tk, filedialog
 from kivy.lang import Builder
 from kivy.core.clipboard import Clipboard
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, NumericProperty
 from kivymd.app import MDApp
 from kivy.uix.filechooser import FileChooserListView
 import yt_dlp as youtube_dl
@@ -25,6 +25,7 @@ from kivy.core.window import Window
 from kivymd.uix.slider import MDSlider
 from kivy.clock import Clock
 from PIL import Image, ImageDraw
+import sqlite3
 
 from functions import (get_background_image, get_back_image, get_greeting, get_greet, add_username_to_end,
                        get_localized_date)
@@ -131,7 +132,6 @@ MDScreenManager:
                         font_size: "25sp"
                         font_name: "assets/fonts/Montserrat-Medium.ttf"
                         pos_hint: {"center_x": 0.34, "top": 1.38}
-
 
                     Label:
                         id: date
@@ -277,6 +277,147 @@ MDScreenManager:
                         pos_hint: {'center_x': 0.57, 'center_y': 0.72}
                         text: ''
                         color: app.theme_cls.accent_color
+                    
+                    MDScrollView:
+                        pos: 1, -550
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: '10dp'
+                            spacing: '10dp'
+                            
+                            MDCard:
+                                id: card_1
+                                size_hint: None, None
+                                size: 400, 100
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.3}
+                                radius: [10, 10, 10, 10] 
+                                md_bg_color: "#444a6e"
+                                ripple_behavior: False
+
+                                RelativeLayout:
+                                    MDLabel:
+                                        id: card_1_name
+                                        size_hint: 0.6, None
+                                        text: app.get_card_text(1, 'first')[0]
+                                        tooltip_text: app.get_card_text(1, 'first')[1]
+                                        pos_hint: {'center_x': 0.32, 'center_y': 0.55}
+                                        theme_text_color: "Custom"
+                                        text_color: 1, 1, 1, 1
+                                        font_size: "12sp"
+                                        font_name: "assets/fonts/Montserrat-Medium.ttf"
+                                        max_lines: 5
+                                        ellipsize: 'end'
+
+                                    MDLabel:
+                                        id: card_1_data
+                                        text: app.get_card_text(1, 'second')
+                                        pos_hint: {'x': 0.72, 'center_y': 0.2}
+                                        theme_text_color: "Custom"
+                                        text_color: 1, 1, 1, 1
+                                        font_size: "12sp"
+                                        font_name: "assets/fonts/Montserrat-Medium.ttf"
+                                        max_lines: 2
+                                        ellipsize: 'end'
+
+                                    MDIconButton:
+                                        id: trash_1
+                                        icon: "assets/icons/trash-32.png"
+                                        pos_hint: {"x": 0.88, "center_y": 0.8}
+                                        ripple_scale: 0
+                                        opacity: app.show_trash_1
+                                        on_release: 
+                                            app.delete_record(1)
+                                            # app.update_card_element(1)
+
+                            MDCard:
+                                id: card_2
+                                size_hint: None, None
+                                size: 400, 100
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+                                radius: [10, 10, 10, 10] 
+                                md_bg_color: "#444a6e"
+                                ripple_behavior: False
+
+                                RelativeLayout:
+                                    MDLabel:
+                                        id: card_2_name
+                                        size_hint: 0.6, None
+                                        text: app.get_card_text(2, 'first')[0]
+                                        tooltip_text: app.get_card_text(2, 'first')[1]
+                                        pos_hint: {'center_x': 0.32, 'center_y': 0.55}
+                                        theme_text_color: "Custom"
+                                        text_color: 1, 1, 1, 1
+                                        font_size: "12sp"
+                                        font_name: "assets/fonts/Montserrat-Medium.ttf"
+                                        max_lines: 5
+                                        ellipsize: 'end'
+
+                                    MDLabel:
+                                        id: card_2_data
+                                        text: app.get_card_text(2, 'second')
+                                        pos_hint: {'x': 0.72, 'center_y': 0.2}
+                                        theme_text_color: "Custom"
+                                        text_color: 1, 1, 1, 1
+                                        font_size: "12sp"
+                                        font_name: "assets/fonts/Montserrat-Medium.ttf"
+                                        max_lines: 2
+                                        ellipsize: 'end'
+
+                                    MDIconButton:
+                                        id: trash_2
+                                        icon: "assets/icons/trash-32.png"
+                                        pos_hint: {"x": 0.88, "center_y": 0.8}
+                                        ripple_scale: 0
+                                        opacity: app.show_trash_2
+                                        on_release: 
+                                            app.delete_record(2)
+                                            # app.update_card_element(2)  
+
+                            MDCard:
+                                id: card_3
+                                size_hint: None, None
+                                size: 400, 100
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.1}
+                                radius: [10, 10, 10, 10] 
+                                md_bg_color: "#444a6e"
+                                ripple_behavior: False
+
+                                RelativeLayout:
+                                    MDLabel:
+                                        id: card_3_name
+                                        size_hint: 0.6, None
+                                        text: app.get_card_text(3, 'first')[0]
+                                        tooltip_text: app.get_card_text(2, 'first')[1]
+                                        pos_hint: {'center_x': 0.32, 'center_y': 0.55}
+                                        theme_text_color: "Custom"
+                                        text_color: 1, 1, 1, 1
+                                        font_size: "12sp"
+                                        font_name: "assets/fonts/Montserrat-Medium.ttf"
+                                        max_lines: 5
+                                        ellipsize: 'end'
+
+                                    MDLabel:
+                                        id: card_3_data
+                                        text: app.get_card_text(3, 'second')
+                                        pos_hint: {'x': 0.72, 'center_y': 0.2}
+                                        theme_text_color: "Custom"
+                                        text_color: 1, 1, 1, 1
+                                        font_size: "12sp"
+                                        font_name: "assets/fonts/Montserrat-Medium.ttf"
+                                        max_lines: 2
+                                        ellipsize: 'end'
+
+                                    MDIconButton:
+                                        id: trash_3
+                                        icon: "assets/icons/trash-32.png"
+                                        pos_hint: {"x": 0.88, "center_y": 0.8}
+                                        ripple_scale: 0
+                                        opacity: app.show_trash_3
+                                        on_release: 
+                                            app.delete_record(3)
+                                            # app.update_card_element(3)
 
                 MDBottomNavigationItem:
                     id: bottom_navigation_3
@@ -925,15 +1066,6 @@ MDScreenManager:
 """
 
 
-# Download path selection
-# class CustomFileChooser(FileChooserListView):
-#     def __init__(self, **kwargs):
-#
-#         super().__init__(**kwargs)
-#         self.rootpath = 'D:/'
-#         self.dirselect = True
-
-
 class DownloadFolderChooser:
     def __init__(self, callback):
         self.callback = callback
@@ -956,10 +1088,6 @@ class DownloadFolderChooser:
         print(f"Selected folder: {selected_path}")
 
 
-# class ProgressBar(MDSlider):
-#     pass
-
-
 # First-in main background
 class YoutubeDownloader(BoxLayout):
     def __init__(self, background_image=None, greeting=None, **kwargs):
@@ -976,6 +1104,15 @@ class YoutubeDownloader(BoxLayout):
 class YoutubeDownloaderApp(MDApp):
     my_text = StringProperty("Initial text")
 
+    card_text_1 = StringProperty("")
+    show_trash_1 = NumericProperty(0)
+
+    card_text_2 = StringProperty("")
+    show_trash_2 = NumericProperty(0)
+
+    card_text_3 = StringProperty("")
+    show_trash_3 = NumericProperty(0)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.background_image_source = get_background_image()
@@ -988,6 +1125,151 @@ class YoutubeDownloaderApp(MDApp):
         self.window_position = "left"
         self.selected_folder_path = ""
         self.language_text = self.startup_language()
+
+        self.db_path = "downloaded_videos.db"
+        self.create_database()
+
+    def create_database(self):
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS downloads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                url TEXT NOT NULL,
+                file_path TEXT NOT NULL,
+                download_time TEXT NOT NULL
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+    def save_to_database(self, url, file_path):
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO downloads (url, file_path, download_time)
+            VALUES (?, ?, ?)
+        ''', (url, file_path, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        conn.commit()
+        conn.close()
+        print(f"Saved to database: URL: {url}, Path: {file_path}")
+
+    @staticmethod
+    def keep_latest_five_records():
+        conn = sqlite3.connect("downloaded_videos.db")
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM downloads ORDER BY download_time DESC")
+        all_records = cursor.fetchall()
+
+        if len(all_records) > 5:
+            records_to_keep = all_records[:5]
+            ids_to_keep = [record[0] for record in
+                           records_to_keep]
+
+            ids_to_keep_placeholder = ','.join('?' for i in ids_to_keep)
+            cursor.execute(f"DELETE FROM downloads WHERE id NOT IN ({ids_to_keep_placeholder})", ids_to_keep)
+            print(f"Deleted {len(all_records) - 3} records from database")
+
+        conn.commit()
+        conn.close()
+
+    def delete_record(self, record_id):
+        print("trying to delete")
+        record_id = self.get_record_id(record_id)
+        if record_id:
+            print(f"Deleting record with ID: {record_id}")
+            conn = sqlite3.connect("downloaded_videos.db")
+            cursor = conn.cursor()
+            try:
+                cursor.execute("SELECT * FROM downloads WHERE id = ?", (record_id,))
+                record = cursor.fetchone()
+                if record:
+                    cursor.execute("DELETE FROM downloads WHERE id = ?", (record_id,))
+                    conn.commit()
+                    print(f"Record with ID {record_id} deleted.")
+                else:
+                    print(f"No record found with ID {record_id}.")
+            except sqlite3.Error as e:
+                print(f"SQLite error: {e}")
+            finally:
+                self.update_card_element()
+                conn.close()
+        else:
+            print(f"No record found for card {record_id}")
+
+    def update_card_element(self):
+        print("trying to update")
+        ids = [
+            ["card_1_name", "card_1_data", "trash_1"],
+            ["card_2_name", "card_2_data", "trash_2"],
+            ["card_3_name", "card_3_data", "trash_3"]
+        ]
+
+        downloads = self.get_downloads()
+
+        for number in range(3):
+            if number <= len(ids):
+                element = ids[number]
+
+                print(f"Updating card {number + 1}")
+
+                new_first_text, full_first_text = self.get_card_text(number + 1, 'first')
+                new_second_text = self.get_card_text(number + 1, 'second')
+
+                self.root.ids[element[0]].text = new_first_text
+                self.root.ids[element[0]].tooltip_text = full_first_text
+                self.root.ids[element[1]].text = new_second_text
+                self.root.ids[element[2]].opacity = self.get_opacity(number + 1)
+            else:
+                element = ids[number]
+                self.root.ids[element[0]].text = "No information\nhas appeared"
+                self.root.ids[element[0]].tooltip_text = "No information\nhas appeared"
+                self.root.ids[element[1]].text = "No information\nhas appeared"
+                self.root.ids[element[2]].opacity = 0
+
+    def get_record_id(self, card_number):
+        downloads = self.get_downloads()
+        if card_number <= len(downloads):
+            return downloads[card_number - 1][0]
+        return None
+
+    def get_downloads(self):
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute('SELECT id, url, file_path, download_time FROM downloads')
+        downloads = c.fetchall()
+        conn.close()
+        return downloads
+
+    def get_card_text(self, card_number, part):
+        downloads = self.get_downloads()
+        if card_number <= len(downloads):
+            identifier, url, file_path, download_time = downloads[card_number - 1]
+
+            download_date, download_time = download_time.split(' ')
+
+            if part == 'first':
+                full_text = f"Url: {url}\nPath: {file_path}"
+                short_text = f"Url: {self.shorten_text(url, 32)}\nPath: {self.shorten_text(file_path, 77)}"
+                return short_text, full_text
+            elif part == 'second':
+                return f"Date: {download_date}\nTime: {download_time}"
+        else:
+            if part == 'first':
+                return "No information\nhas appeared", "No information\nhas appeared"
+            elif part == 'second':
+                return "No information\nhas appeared"
+
+    @staticmethod
+    def shorten_text(text, max_length):
+        if len(text) > max_length:
+            return text[:max_length] + '...'
+        return text
+
+    def get_opacity(self, number):
+        card_text = self.root.ids[f'card_{number}_name'].text
+        return 0 if card_text == "No information\nhas appeared" else 1
 
     def build(self):
         # Theme customization
@@ -1007,6 +1289,23 @@ class YoutubeDownloaderApp(MDApp):
         if os.path.exists("username.json"):
             self.root.current = "screen B"
             print('Screen B')
+
+            self.keep_latest_five_records()
+
+            card_text = self.get_card_text(1, 'first')[0]
+            self.card_text_1 = card_text
+            if card_text != "No information\nhas appeared":
+                self.show_trash_1 = 1
+
+            card_text = self.get_card_text(2, 'first')[0]
+            self.card_text_2 = card_text
+            if card_text != "No information\nhas appeared":
+                self.show_trash_2 = 1
+
+            card_text = self.get_card_text(3, 'first')[0]
+            self.card_text_3 = card_text
+            if card_text != "No information\nhas appeared":
+                self.show_trash_3 = 1
 
         Clock.schedule_once(lambda dt: self.set_fixed_window_size(), 0.1)
 
@@ -1120,7 +1419,6 @@ class YoutubeDownloaderApp(MDApp):
 
     def download_video(self, url):
         try:
-            self.root.ids.enter_http.helper_text = "Video download in progress"
             ydl_opts = {
                 'format': 'best',
                 'outtmpl': self.selected_folder_path + '%(title)s.%(ext)s',
@@ -1129,13 +1427,15 @@ class YoutubeDownloaderApp(MDApp):
 
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
+                info_dict = ydl.extract_info(url, download=True)
+                file_path = ydl.prepare_filename(info_dict)
+                self.save_to_database(url, file_path)
 
-            self.root.ids.enter_http.helper_text = "Video downloaded successfully"
-            self.send_windows_notification('Success')
+            Clock.schedule_once(lambda dt: self.send_windows_notification('Success'))
+            Clock.schedule_once(lambda dt: self.update_card_element())
             print("Video downloaded successfully")
 
         except Exception as e:
-            self.root.ids.enter_http.helper_text = str(e)
             print(f"An error occurred: {str(e)}")
 
     def on_progress(self, data):
@@ -1164,10 +1464,15 @@ class YoutubeDownloaderApp(MDApp):
                 self.root.ids.enter_http.helper_text = "Invalid URL provided."
                 self.send_windows_notification("Invalid URL provided.")
                 print("Invalid URL provided.")
+
         except Exception as e:
-            self.root.ids.enter_http.helper_text = str(e)
             self.send_windows_notification("An error occurred while downloading the video")
             print(f"An error occurred: {str(e)}")
+
+    def show_downloads(self):
+        downloads = self.get_downloads()
+        for download in downloads:
+            print(f"URL: {download[0]}, File Path: {download[1]}, Download Time: {download[2]}")
 
     # account screen switches
     def edit_profile(self):
