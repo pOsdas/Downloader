@@ -2,6 +2,8 @@
 
 A program for download your videos
 
+Here is: [Preview images](app/assets/preview_images/)
+
 ## libraries
 * Kivy
 * KivyMD
