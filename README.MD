@@ -12,6 +12,7 @@ Here is: [Preview images](app/assets/preview_images/)
 * Babel
 * pillow
 * ctypes
+* sqlite3
 
 ## How to run
 
