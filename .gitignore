@@ -1,0 +1,10 @@
+app/downloaded_url.txt
+app/downloaded_videos.db
+app/email.json
+app/main.spec
+app/username.json
+.venv
+app/assets/images/custom_avatar.png
+app/set_email_notification.json
+app/set_language.json
+app/set_push_notification.json
