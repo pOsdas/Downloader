@@ -2,5 +2,5 @@ Kivy~=2.3.0
 kivymd~=1.2.0
 screeninfo~=0.8.1
 plyer~=2.1.0
-Babel~=2.15.0
-pillow~=10.3.0
+Babel~=2.16.0
+pillow~=10.4.0
