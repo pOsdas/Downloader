@@ -4,25 +4,20 @@ import os
 import re
 import json
 import shutil
-import random
-import time
 import webbrowser
 from tkinter import Tk, filedialog
 from kivy.lang import Builder
 from kivy.core.clipboard import Clipboard
 from kivy.properties import StringProperty, NumericProperty
 from kivymd.app import MDApp
-from kivy.uix.filechooser import FileChooserListView
 import yt_dlp as youtube_dl
 import threading
 from kivymd.uix.boxlayout import BoxLayout
 import datetime
-from kivy.graphics import Ellipse, Color
 from kivymd.uix.textfield import MDTextField
 from plyer import notification
 from screeninfo import get_monitors
 from kivy.core.window import Window
-from kivymd.uix.slider import MDSlider
 from kivy.clock import Clock
 from PIL import Image, ImageDraw
 import sqlite3
@@ -1466,7 +1461,7 @@ class YoutubeDownloaderApp(MDApp):
                 print("Invalid URL provided.")
 
         except Exception as e:
-            self.send_windows_notification("An error occurred while downloading the video")
+            self.send_windows_notification("An ek.,rror occurred while downloading the video")
             print(f"An error occurred: {str(e)}")
 
     def show_downloads(self):
