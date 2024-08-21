@@ -1,7 +1,4 @@
 # main_second.py
-# import os
-# os.environ['KIVY_ANGLE_DIR'] = r'C:\Users\Maloy\PycharmProjects\Download (GitHub)\.venv\share\angle\bin'
-import time
 
 from kivy.core.window import Window
 import ctypes
