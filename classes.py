@@ -12,7 +12,7 @@ from kivy.properties import StringProperty, NumericProperty
 from kivymd.app import MDApp
 import yt_dlp as youtube_dl
 import threading
-from kivymd.uix.boxlayout import BoxLayout
+from kivy.uix.boxlayout import BoxLayout
 import datetime
 from kivymd.uix.textfield import MDTextField
 from plyer import notification
@@ -22,8 +22,14 @@ from kivy.clock import Clock
 from PIL import Image, ImageDraw
 import sqlite3
 
-from functions import (get_background_image, get_back_image, get_greeting, get_greet, add_username_to_end,
-                       get_localized_date)
+from functions import (
+    get_background_image, get_back_image, get_greeting,
+    get_greet, add_username_to_end, get_localized_date
+)
+
+import os
+import certifi
+os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
 
 monitors = get_monitors()
 
@@ -1066,7 +1072,7 @@ class DownloadFolderChooser:
         self.callback = callback
         self.file_path = ""
 
-    def select_folder(self):
+    def select_folder(self) -> None:
         root = Tk()
         root.withdraw()
         folder_path = filedialog.askdirectory(title="Select path to download")
@@ -1076,10 +1082,11 @@ class DownloadFolderChooser:
             self.file_path = folder_path
             self.callback(self.file_path)
 
-    def open(self):
+    def open(self) -> None:
         self.select_folder()
 
-    def callback(self, selected_path):
+    @staticmethod
+    def callback(selected_path) -> None:
         print(f"Selected folder: {selected_path}")
 
 
@@ -1124,7 +1131,7 @@ class YoutubeDownloaderApp(MDApp):
         self.db_path = "downloaded_videos.db"
         self.create_database()
 
-    def create_database(self):
+    def create_database(self) -> None:
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         c.execute('''
@@ -1138,7 +1145,7 @@ class YoutubeDownloaderApp(MDApp):
         conn.commit()
         conn.close()
 
-    def save_to_database(self, url, file_path):
+    def save_to_database(self, url, file_path) -> None:
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         c.execute('''
@@ -1150,7 +1157,7 @@ class YoutubeDownloaderApp(MDApp):
         print(f"Saved to database: URL: {url}, Path: {file_path}")
 
     @staticmethod
-    def keep_latest_five_records():
+    def keep_latest_five_records() -> None:
         conn = sqlite3.connect("downloaded_videos.db")
         cursor = conn.cursor()
 
@@ -1169,7 +1176,7 @@ class YoutubeDownloaderApp(MDApp):
         conn.commit()
         conn.close()
 
-    def delete_record(self, record_id):
+    def delete_record(self, record_id) -> None:
         print("trying to delete")
         record_id = self.get_record_id(record_id)
         if record_id:
@@ -1193,7 +1200,7 @@ class YoutubeDownloaderApp(MDApp):
         else:
             print(f"No record found for card {record_id}")
 
-    def update_card_element(self):
+    def update_card_element(self) -> None:
         print("trying to update")
         ids = [
             ["card_1_name", "card_1_data", "trash_1"],
@@ -1229,7 +1236,7 @@ class YoutubeDownloaderApp(MDApp):
             return downloads[card_number - 1][0]
         return None
 
-    def get_downloads(self):
+    def get_downloads(self) -> list:
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         c.execute('SELECT id, url, file_path, download_time FROM downloads')
@@ -1257,12 +1264,12 @@ class YoutubeDownloaderApp(MDApp):
                 return "No information\nhas appeared"
 
     @staticmethod
-    def shorten_text(text, max_length):
+    def shorten_text(text, max_length) -> str:
         if len(text) > max_length:
             return text[:max_length] + '...'
         return text
 
-    def get_opacity(self, number):
+    def get_opacity(self, number) -> int | str:
         card_text = self.root.ids[f'card_{number}_name'].text
         return 0 if card_text == "No information\nhas appeared" else 1
 
@@ -1280,8 +1287,11 @@ class YoutubeDownloaderApp(MDApp):
 
         return Builder.load_string(KV)
 
-    def on_start(self):
-        if os.path.exists("username.json"):
+    def on_start(self) -> None:
+        if not os.path.exists("username.json"):
+            self.root.current = "screen A"
+            print('Screen A')
+        else:
             self.root.current = "screen B"
             print('Screen B')
 
@@ -1304,17 +1314,17 @@ class YoutubeDownloaderApp(MDApp):
 
         Clock.schedule_once(lambda dt: self.set_fixed_window_size(), 0.1)
 
-    def save_username(self):
+    def save_username(self) -> None:
         self.username = self.root.ids.enter_name.text
         self.write_username()
         print(f"Username saved", self.username)
 
-    def save_username_two(self):
+    def save_username_two(self) -> None:
         self.username = self.root.ids.enter_name_again.text
         self.write_username()
         print(f"Username saved", self.username)
 
-    def write_username(self):
+    def write_username(self) -> None:
         username_file = "username.json"
         with open(username_file, "w") as f:
             data = {"username": self.username}
@@ -1330,11 +1340,11 @@ class YoutubeDownloaderApp(MDApp):
         user32.SetWindowLongPtrW(hwnd, -16, style)
 
     @staticmethod
-    def copy_to_clipboard(text):
+    def copy_to_clipboard(text) -> None:
         Clipboard.copy(text)
 
     @staticmethod
-    def show_username():
+    def show_username() -> str:
         if os.path.isfile('username.json'):
             with open('username.json', 'r') as file:
                 data = json.load(file)
@@ -1345,7 +1355,7 @@ class YoutubeDownloaderApp(MDApp):
             return 'loading...'
 
     @staticmethod
-    def get_email():
+    def get_email() -> str:
         if os.path.isfile('email.json'):
             with open('email.json', 'r') as file:
                 data = json.load(file)

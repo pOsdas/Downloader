@@ -5,9 +5,12 @@ import os
 import random
 from babel.dates import format_date
 
+import certifi
+os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
+
 
 # First-in text
-def get_greeting():
+def get_greeting() -> str:
     current_time = datetime.datetime.now().time()
     if datetime.time(6, 0) <= current_time < datetime.time(18, 0):
         return 'Good morning'
@@ -16,7 +19,7 @@ def get_greeting():
 
 
 # First-in background
-def get_background_image():
+def get_background_image() -> str:
     current_time = datetime.datetime.now().time()
     if datetime.time(6, 0) <= current_time < datetime.time(18, 0):
         # Day
@@ -27,7 +30,7 @@ def get_background_image():
 
 
 # Background during entrances > 1
-def get_back_image():
+def get_back_image() -> str:
     current_time = datetime.datetime.now().time()
     if datetime.time(6, 0) <= current_time < datetime.time(18, 0):
         # Day
@@ -40,7 +43,7 @@ def get_back_image():
 
 
 # Text during entrances > 1
-def get_greet():
+def get_greet() -> str:
     current_time = datetime.datetime.now().time()
     if datetime.time(6, 0) <= current_time < datetime.time(18, 0):
         return 'greeting_m'
@@ -48,7 +51,7 @@ def get_greet():
         return 'greeting_n'
 
 
-def add_username_to_end():
+def add_username_to_end() -> str:
     username = ''
     if os.path.isfile('username.json'):
         with open('username.json', 'r') as file:
@@ -58,7 +61,7 @@ def add_username_to_end():
     return username
 
 
-def get_localized_date(language):
+def get_localized_date(language) -> str | None:
     now = datetime.datetime.now()
     if language == 'English':
         localized_date = format_date(now, format='d MMMM, yyyy', locale='en')
